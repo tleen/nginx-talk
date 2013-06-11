@@ -34,6 +34,8 @@ header{
   background-color: #ef4723;
   color: #222;
   padding: 1.0em;
+} header a{
+  color: #222;
 }
 
 header h1{

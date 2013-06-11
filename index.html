@@ -1,0 +1,300 @@
+<!doctype html>
+<head>
+	<title>Introduction to Nginx</title>
+
+
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Abril+Fatface|Open+Sans:400italic,700italic,400,700|Droid+Sans+Mono" type="text/css" />
+	<link rel="stylesheet" href="style.css" type="text/css" />
+
+</head>
+<body>
+
+	<header>
+		<h1>Introduction to nginx</h1>
+		<p>By Thomas Leen / Confluent Forms LLC</p>
+	</header>
+
+	<main>
+		<p>Nginx is persistently becoming the de facto replacement for the Apache web server. Nginx is not a traditional web server as you may think of them. Nginx is more of a HTTP multi-tool.</p>
+		
+		<h2>What can nginx do?</h2>
+		<p>Nginx is:</p> 
+		<ul>
+			<li>a web server</li>
+			<li>a load balancer</li>
+			<li>a reverse proxy</li>
+			<li>a cache</li>
+		</ul>
+		
+		<p>It performs all these actions out-of-the-box, the default installation of nginx already provides you with enormous capability.</p>
+		<p>Nginx is not limited to just HTTP related protocols, it can also do mail related protocols: IMAP, SMTP, POP... This seems odd, but it is for a very good reason, early in nginx development the creator, Igor Sysoev, was <a href="http://blog.fastmail.fm/2007/01/04/webimappop-frontend-proxies-changed-to-nginx/">paid by FastMail to implement these protocols</a> that they could leverage the performance of nginx in their own area.</p>
+
+		<h2>History</h2>
+		<p>Nginx was created to solve the <a href="http://en.wikipedia.org/wiki/C10k_problem">C10k problem</a>: allowing a web (or any socket) server to handle a large (<strong>10,000</strong>) number of <strong>c</strong>oncurrent connections. It was architected after the world wide web had become a driving force in business and commerce, and, as such, has been built to functionally meet the needs of modern websites. </p>
+		
+		<h2>Today</h2>
+		<p>Nginx powers a lot of the sites you are using today. If you look at <a href="http://news.netcraft.com/archives/2013/06/06/june-2013-web-server-survey-3.html">Netcraft's June 2013 report</a>, Nginx powers <strong>~13%</strong> of the web, they make special note that:
+			<q>nginx is the most commonly used web server <strong>at Amazon</strong>: it is used on <strong>41%</strong> of the 12M websites hosted using EC2 or S3. Last month Netcraft reported Amazon had 158k web-facing computers and has been the largest hosting provider by the number of web-facing computers since September 2012. After nginx, Apache is the next most common web server, 24.7% of websites use it, followed by Microsoft with 14%...</q>
+
+			I rather like the <a href="http://w3techs.com/technologies/cross/web_server/ranking">w3 Techs web server ranking</a>, as you can see on their data, the more intense the hosting requirements the more likely nginx is the webserver. 
+		</p>
+
+		<h2>Bad news First</h2>
+		<h3>No Apache-style .ht*</h3>
+		<p>I like nginx, a lot, but I still miss the Apache .ht* style local configuration and access control. Nginx can do .htpasswd compatible authentication but does not allow local in-directory configuration overrides via .htaccess files. All of these can be similarly configured in the main configuration but not locally. You see this style of configuration often in massive virtual hosting environments, therefore you do not see a lot of Nginx there. Igor <a href="http://mailman.nginx.org/pipermail/nginx/2006-September/000210.html">said himself</a>: 
+			<q>In my opinion the only defensible .htaccess use is a mass virtual hosting. The support of .htaccess concept in nginx is too complex.</q> 
+			You are therefore unlikely to see this style of configurability in nginx.
+		</p>
+
+		<h3>Documentation is poor</h3>
+		<p>
+			The core, official, nginx documentation is not great. The official documentation is in Russian, and the English is translated (<a href="http://osdir.com/ml/nginx/2012-10/msg00255.html">sometimes late</a>). But this situation seems to be actively improving. Most of what I have learned about nginx comes from blog posts and other technical documentation external to the official. In this way Google is still the best source for <a href="https://www.google.com/#q=nginx+how+do+i">nginx answers</a>.
+		</p>
+		
+		<h2>The Good Stuff</h2>
+		<h3>Efficient</h3>
+		<p>
+			Personally I have found the Apache vs nginx performance to be off the charts for nginx. Slow sites were faster, memory and cpu use were miniaturized. There have been <a href="http://www.organic-development.com/blog/apache-vs-nginx-performance-comparison.html">a</a> <a href="http://drupal.stackexchange.com/questions/71610/nginx-vs-apache-are-there-any-actual-usage-comparisons-and-statistcs-out-there">few</a> <a href="http://www.whisperdale.net/11-nginx-vs-cherokee-vs-apache-vs-lighttpd.html">comparisons</a>:
+
+			<img src="https://lh6.googleusercontent.com/TGZJ8_IWGWsn-0M6Txi9rrt7m5shn_Y5wwi475r8ewMatyVQyULg43lQvAvSN1V24P_9Eu_aezpyRMuWRbmf_XPXtjkN6QrsB9zbM7eLs4ESzrtR6_3ft-LgjA" class="too-big" />
+
+			In general nginx wins these tests as well as those against other similar servers (though not by as much).
+		</p>
+
+		<p>Nginx achieves its efficiency by having an event-driven asynchronous architecture. Node.js has this too, if you remember my singing its praises last Fall. I won't go into it too much now but to stress that much of the efficiency of nginx comes from fundamental architectural elements.</p>
+		
+		<h3>Easy to use</h3>
+		<p>Although it has a new syntax for the configuration structure nginx is surprisingly easy to learn and use. You may be a little out of your comfort zone if Apache is your bread-and-butter, after an hour or two it will begin to feel much simpler.</p>
+
+		<h2>Get it going</h2>
+
+		<h3>Install</h3>
+		<p>Check for install instructions for whatever may be your local platform. Standard installers exist for unix systems, apt-get, yum, and ports all have nginx. On Amazon linux it is a simple "yum install nginx." These installers all put nginx into the standard server initialization areas for their platform, rc.d (Linux) or init.d (BSD). It really does vary, check local documentation. You will use these standard server scripts to get nginx started, rebooted or reloaded.</p>
+
+		<p><em>Don't remove Apache</em>, later on you can see how to use both servers together.</em></p>
+
+		<h3>Configure</h3>
+		<p>Where the actual configuration files live depends on the platform, on unix it is usually under "/etc/nginx" or "/usr/local/etc/nginx", at minimum you have a "nginx.conf" file, some environments have other support files as well. Configuration is interesting as it's syntax is more programming language like than the XML-ish configuration of Apache.</p>
+
+		<h4>Virtual hosts</h4>
+		<p>I have seen a few different setups for virtual servers, one has a conf.d/ sub-directory and a unified configuration file is in there (<strong>conf.d/virtual.conf</strong>) with all the virtual host information. Another has two sub-directories in the main nginx configuration directory: <strong>sites-available/</strong> and <strong>sites-enabled/</strong>, site configurations are separately stored under sites-available and symbolically linked in sites-enabled to enable them in the overall nginx configuration. I can't say why some configurations are one way or another.</p>
+			
+		<h4>SSL chaining</h4>
+		<p>One of the early gotchas working with nginx was handling <a href="http://www.namecheap.com/support/knowledgebase/article.aspx/886">chained SSL certificates</a>. You need to <a href="http://blog.onehub.com/2009/09/17/using-godaddy-ssl-certificates-with-nginx/">concatenate them into a single certificate</a> in order for stock nginx to recognize the certificate. Not a huge deal, but definitely a coming-from-apache annoyance.</p>
+
+		<h4>Example configuration</h4>
+		<p>There are cascading types of configuration from the http level to the server level all the way down to the location level:</p>
+		<pre><code>
+http{
+
+  # global directives
+
+  # hashes are comments
+
+  server{
+    # site (virtual server) specific
+  }
+
+  server{
+
+    location{
+      # specific to uri
+    }
+
+  }
+
+}				
+		</code></pre>
+
+		<p>Nicely braced, the configuration files look very programmer-friendly in syntax. The following example comes pretty much from the default nginx install. This is a simple server setup for static files, but nginx is capable of so much more. Add a bunch of these for your virtual servers. We are talking mostly about server-level configuration henceforth.</p>
+
+		<pre><code>
+server {
+    listen       80; #all ips port 80
+#    listen       1.2.3.4:8080; # an ip address/port
+    server_name  nginx-talk.thomasleen.com  nginx-talk.confluentforms.com; #aliases go here too
+
+    location / {
+        root   /usr/share/nginx/website-directory; # the webroot for your site
+        index  index.html index.htm; # declared index page(s)
+    }
+}</code>
+		</pre>
+		
+
+
+		<h2>The great stuff</h2>
+
+		<h3>Reverse proxying</h3>
+
+		<p>
+This is the key functionality leveraged by web applications, using nginx to act as the initial front end to an array of services. Here is a simple example of a server proxying all traffic to another server. In this example it is public server to public server, usually the public server proxies for a private server somewhere behind it on a protected network. 
+		</p>
+
+<pre><code>
+server{
+  listen [local ip address]:80;
+  server_name test-cookies-proxy.thomasleen.com;
+  location / {
+    proxy_pass http://www.whatarecookies.com/;
+  }
+}
+
+</code></pre>
+
+    <p>Here I just take all requests to <a href="http://test-cookies-proxy.thomasleen.com">http://test-cookies-proxy.thomasleen.com</a> and pass them along to a different website <a href="http://www.whatarecookies.com/">http://www.whatarecookies.com/</a>, then serve up that information as if it were coming from my own server. I do it again with an ip echoing site to show the effect proxying has on ip information: <a href="http://test-ip-proxy.thomasleen.com">http://test-ip-proxy.thomasleen.com</a> proxies for the website <a href="http://www.whatsmyip.us/">http://www.whatsmyip.us/</a>.
+
+<pre><code>
+server{
+  listen [local ip address]:80;
+  server_name test-ip-proxy.thomasleen.com;
+  location / {
+    proxy_pass http://www.whatsmyip.us/;
+  }
+}
+</code></pre>
+	  
+		
+		<h4>+ Cache that proxied data</h4>
+		<p>
+			I am not going into this here but to note that it is a reasonable and possible option. You can <a href="http://people.adams.edu/~cdmiller/posts/nginx-reverse-proxy-cache/">cache the response</a> from proxied servers, thereby taking the load off of a weaker service and letting nginx do the heavy lifting. Or you could just use <a href="https://www.varnish-cache.org/">Varnish</a>, that is a good option too.
+		</p>
+
+		<h3>Load balancing</h3>
+		<p>Nginx uses its reverse proxying capabilities to load balance between servers. It requires a little more setup:</p>
+		<pre><code>
+upstream test-lb-other-web-sites{
+  server <a href="http://hotrod.confluentforms.com">hotrod.confluentforms.com</a>;
+  server <a href="http://blaster.confluentforms.com">blaster.confluentforms.com</a>;
+  server <a href="http://cosmos.confluentforms.com">cosmos.confluentforms.com</a>;
+}
+
+server{
+	access_log /var/log/nginx/proxy.log;
+	listen [local ip address]:80;
+	server_name test-load-balance.thomasleen.com;
+
+	location / {
+	   proxy_pass http://test-lb-other-web-sites;
+	}
+}
+
+		</code></pre>
+    <p>Here we bring in the <strong>upstream</strong> block, it is at the http-level of configuration, outside of the server block. You declare and name the collection of servers (in our case it is "test-lb-other-web-sites", and list the servers you will be balancing. Then in the <strong>proxy_pass</strong> command you give it the named collection. Going to <a href="http://test-load-balance.thomasleen.com/">http://test-load-balance.thomasleen.com</a> will give you a round-robin style distribution of these servers. Sometimes you want to tie a user into a specific server once it has be selected for the duration of their visit. You are able to do this by modifying the <strong>upstream</strong> block. </p>
+
+		<pre><code>
+upstream test-sticky-lb-other-web-sites{
+  ip_hash; # <-- new directive
+  server hotrod.confluentforms.com;
+  server blaster.confluentforms.com;
+  server cosmos.confluentforms.com;
+}
+
+server{
+
+  listen [local-ip-address]:80;
+  server_name test-sticky-load-balance.thomasleen.com;
+
+  location / {
+    proxy_pass http://test-sticky-lb-other-web-sites;
+  }
+}
+		</code></pre>
+
+		<p>Here we just add a single directive to the upstream block, the <strong>ip_hash</strong> command, this indicates that servers should be selected based on the requesting IP, tying an IP to a specific server. Try your own server assignment: <a href="http://test-sticky-load-balance.thomasleen.com">http://test-sticky-load-balance.thomasleen.com</a>. There are <a href="http://wiki.nginx.org/HttpUpstreamModule">other modifications</a> to the upstream server list which allow for weighted distribution and fail-over.</p> 
+
+		<h2>Interesting configuration options</h2>
+
+		<p>There are some other configuration options that are interesting and helpful but require more detail than I can provide here.</p>
+
+		<h3>Try files</h3>
+		<p>I love this configuration directive, it handles so many cases which would require complex solutions otherwise: <strong>try_files</strong>. it acts like a giant cascading if statement for file existence. Example use, checking for the existence of a requested mod_rewrite style url, if not present go back to an older controller style url and if all else fails, return a 404 error:</p>
+<pre><code>
+try_files $uri $uri/ /index.php?q=$uri&$args =404;
+</code></pre>
+    <p>Coupled with other advanced configuration directives try_files is able to give you a lot of expressive flow control power in a short statement.</p>
+
+		<h3>Rate limiting</h3>
+		<p>There is a built-in module which allows for connecting limiting via the <a href="http://wiki.nginx.org/HttpLimitReqModule">limit_req_zone</a> directive. Very handy if some <a href="http://en.wikipedia.org/wiki/Bingbot">overzealous bot</a> has forgotten it's manners.</p>
+
+		<h3>Configuration conditionals</h3>
+		<p>The nginx configuration allows for the use of if conditionals (although the practice <a href="http://wiki.nginx.org/IfIsEvil">is discouraged</a>).</p>
+		<pre><code>
+location / {
+  if ($request_method = POST ) {
+    return 405;
+  }
+}
+		</code></pre>
+
+		<p>Notice that elements of the request also act like variables, there are a lot of options here for <a href="http://wiki.nginx.org/HttpRewriteModule">what can be done</a>.</p>
+
+		<h3>Rewriting</h3>
+		<p>Nginx supports comprehensive url rewriting out of the box, complicated and the most common (301 redirect):</p>
+		<pre><code>
+location / {
+  rewrite "^/something/our_old_url.php?id=(.*)$" ^/our/nice/url/$1 permanent;
+}
+		</code></pre>
+
+
+		<h3>Variables</h3>
+		<p>As you may have seen in some examples you are able to access <a href="http://wiki.nginx.org/HttpCoreModule#Variables">request variables</a> as part of the configuration options, just s sample of some available vars:</p>
+		<ul>
+			<li>$server_addr - server address</li>
+			<li>$request_filename - path for the current request</li>
+			<li>$http_[HEADER] - where HEADER is a http request header name</li>
+			<li>$arg_[PARAMETER] - where PARAMETER is the name of a GET argument in the query string</li>
+			<li>$remote_addr - Client IP</li>
+		</ul>
+
+		<h2>Example web application setup</h2>
+		<p>This is how I mixed and matched some of the directives to create a host for my <a href="http://vicarius.thomasleen.com/">Vicarius</a> project. Here is the server block:</p>
+		<pre><code>
+				
+server{
+
+  listen [my local ip address]:80;
+  server_name vicarius.thomasleen.com;
+
+  location / {
+    root /usr/share/nginx/com.thomasleen.vicarius/www;
+    try_files $uri @app;
+  }
+
+  location @app { # <-- yep a named location, referenced above
+    proxy_set_header X-Real-IP  $remote_addr;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass http://localhost:29307;
+    access_log off;
+  }
+}
+		</code></pre>
+
+		<p>
+			This is a <a href="http://nodejs.org/">Node.js</a> application running on localhost, port 29307. What I am doing here is setting up a two stage try_files, where the second stage is the dynamic part of the application: the node backend. All requests for static assets will be delivered from nginx via the local file system (having tried the request $uri in the root). If the requested uri does not exist in the web root, it will then send it over to my named location @app. @app in this case functions as a proxied location directive, I set some headers so the requesting information is not totally stripped from the headers, disable the local logs and pass it over. The combination of the proxy and try_files makes this all very easy to configure.
+		</p>
+
+		<h2>Setting up PHP</h2>
+		<p>Something that has to happen often is getting PHP running with nginx, unlike apache it is not a module that you can build into nginx. Instead you have to set up php running independently on your server and then use the proxying abilities of nginx to forward requests. You can use something like <a href="http://php-fpm.org/">php-fpm</a> or just proxy to a locally running Apache instance. There are plenty of tutorials about how to do this <a href="https://www.google.com/#q=installing+nginx+and+php-fpm">already online</a>. I usually run php-fpm on a socket and let nginx access it from there, you can always run apache on another port (:8080) or another machine and proxy any php requests there if you wish to stick with it. Example nginx php-fpm configuration:</p>
+		<pre><code>
+location ~ \.php$ {
+ root           [base dir for your php app files];
+ fastcgi_pass   unix:/tmp/php-fpm.sock;
+ fastcgi_index  index.php;
+ fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+ include        fastcgi_params;
+}
+		</code></pre>
+		<p>This snippit does not accutarly represent the amount of work it takes to get to this point, but assuming php-fpm is listening on a socket in /tmp/php-fpm.sock, this lets nginx access it for executing php scripts.</p>
+
+		<h2>So much more</h2>
+		<p>There is a lot nginx can do, this is only the surface level. If you are using Apache now and are not dependent on the local .htaccess files it is time to install and explore nginx. </p>
+	</main>
+
+	<footer>
+	</footer>
+
+</body>
+</html>
